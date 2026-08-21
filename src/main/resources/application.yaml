@@ -1,0 +1,116 @@
+spring:
+  profiles:
+    group:
+      dev:
+        - common
+        - security
+        - persistence-local
+        - server-local
+      prod:
+        - common
+        - security
+        - persistence-prod
+        - server-prod
+---
+spring:
+  config:
+    activate:
+      on-profile: common
+  # persistence
+  jpa:
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+        implicit-strategy: org.springframework.boot.hibernate.SpringImplicitNamingStrategy
+    properties:
+      hibernate:
+        jdbc:
+          # match.start_time is `timestamp` (WITHOUT time zone) while the entity field is
+          # ZonedDateTime. Without this, Hibernate normalises through the JVM default zone
+          # on write AND read, so the same row means different instants on a UTC container
+          # vs. a KST laptop — shifting which matches fall into the KST day ranges that
+          # MatchRange computes by up to 9 hours. Pinning UTC makes the round-trip
+          # JVM-timezone-independent. No unit test can prove this without forking a JVM
+          # with -Duser.timezone, so the guarantee lives in this config line.
+          time_zone: UTC
+#        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+#        implicit-strategy: org.springframework.boot.hibernate.SpringImplicitNamingStrategy
+lol-api:
+  key: ${LOL_API_KEY}
+  url:
+    tournament: ${LOL_API_URL_TOURNAMENT}
+    match: ${LOL_API_URL_MATCH}
+jwt:
+  secret: ${JWT_SECRET}
+  expiration-hours: 24
+--- # server-local
+spring:
+  config:
+    activate:
+      on-profile: server-local
+  devtools:
+    restart:
+      enabled: true
+server:
+  port: 9031
+--- # server-prod
+spring:
+  config:
+    activate:
+      on-profile: server-prod
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+server:
+  shutdown: graceful
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+--- # persistence-local
+spring:
+  config:
+    activate:
+      on-profile: persistence-local
+  jpa:
+    generate-ddl: false
+  flyway:
+    enabled: true
+    # LocalFlywayCleanConfig 가 clean() 을 호출하려면 필요. 이 블록은 persistence-local
+    # 전용이라 persistence-prod 는 Spring Boot 기본값(cleanDisabled=true)을 그대로 유지한다.
+    clean-disabled: false
+    locations: classpath:db/migration,classpath:db/seed
+  docker:
+    compose:
+      # explicit restatement of the 4.1.0 default: container is stopped (not removed)
+      # on JVM exit, kept for fast restarts. See compose.yaml comment for the
+      # data-reuse tradeoff this implies.
+      lifecycle-management: start-and-stop
+#redis:
+#  host: localhost
+#  port: 6379
+--- # persistence-prod
+spring:
+  config:
+    activate:
+      on-profile: persistence-prod
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    generate-ddl: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  datasource:
+    url: ${DB_CONNECTION_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  docker:
+    compose:
+      enabled: false
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: false
+#redis:
+#  host: ${DB_REDIS_HOST}
+#  port: ${DB_REDIS_PORT}
+#  password: ${DB_REDIS_PASSWORD}
