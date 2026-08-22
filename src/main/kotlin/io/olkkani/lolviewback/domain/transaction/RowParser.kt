@@ -3,12 +3,14 @@ package io.olkkani.lolviewback.domain.transaction
 import org.apache.poi.ss.usermodel.Cell
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.DataFormatter
+import org.apache.poi.ss.usermodel.DateUtil
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.usermodel.Workbook
+import java.time.LocalDate
 
 data class RawTransactionRow(
     val rowIndex: Int,
-    val date: String?,
+    val date: LocalDate?,
     val category: String?,
     val description: String?,
     val incomeOrExpense: String?,
@@ -33,7 +35,7 @@ class RowParser {
             result.add(
                 RawTransactionRow(
                     rowIndex = rowIdx + 1,
-                    date = cellText(row, COL_DATE),
+                    date = dateCellValue(row, COL_DATE),
                     category = cellText(row, COL_CATEGORY),
                     description = cellText(row, COL_DESCRIPTION),
                     incomeOrExpense = cellText(row, COL_INCOME_OR_EXPENSE),
@@ -48,5 +50,14 @@ class RowParser {
         val cell = row.getCell(colIndex) ?: return null
         if (cell.cellType == CellType.BLANK) return null
         return formatter.formatCellValue(cell).takeIf { it.isNotBlank() }
+    }
+
+    private fun dateCellValue(row: Row, colIndex: Int): LocalDate? {
+        val cell = row.getCell(colIndex) ?: return null
+        if (cell.cellType == CellType.BLANK) return null
+        // DateUtil.isCellDateFormatted() throws on STRING cells, so check cell type first
+        if (cell.cellType == CellType.STRING) return null
+        if (!DateUtil.isCellDateFormatted(cell)) return null
+        return cell.localDateTimeCellValue.toLocalDate()
     }
 }

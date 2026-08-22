@@ -9,6 +9,10 @@ import kotlin.test.assertNull
 
 class RowParserTest {
 
+    companion object {
+        const val COL_DATE_TEST_INDEX = 0
+    }
+
     private fun buildWorkbook(rows: List<List<String?>>): XSSFWorkbook {
         val wb = XSSFWorkbook()
         val sheet = wb.createSheet("data")
@@ -38,7 +42,7 @@ class RowParserTest {
         assertEquals(1, result.size)
         val row = result[0]
         assertEquals(2, row.rowIndex) // 1-based, header is row 1, this is row 2
-        assertEquals("2026-01-15", row.date)
+        assertNull(row.date) // plain string cells are not date-formatted, so parse to null
         assertEquals("식비", row.category)
         assertEquals("스타벅스", row.description)
         assertEquals("지출", row.incomeOrExpense)
@@ -64,7 +68,26 @@ class RowParserTest {
         val result = RowParser().parse(wb)
 
         assertEquals(1, result.size)
-        assertNotNull(result[0].date) // date is present; sanity check other columns didn't shift
-        assertEquals("2026-01-15", result[0].date)
+        assertNull(result[0].date) // plain string cells are not date-formatted, so parse to null
+    }
+
+    @Test
+    fun `reads a native Excel date cell as LocalDate, not a formatted string`() {
+        val wb = XSSFWorkbook()
+        val sheet = wb.createSheet("data")
+        sheet.createRow(0) // header placeholder
+        val dataRow = sheet.createRow(1)
+        val dateCellStyle = wb.createCellStyle().apply {
+            dataFormat = wb.creationHelper.createDataFormat().getFormat("yyyy-mm-dd")
+        }
+        val dateCell = dataRow.createCell(COL_DATE_TEST_INDEX)
+        dateCell.cellStyle = dateCellStyle
+        dateCell.setCellValue(java.util.Date.from(java.time.LocalDate.of(2026, 1, 15).atStartOfDay(java.time.ZoneId.systemDefault()).toInstant()))
+        dataRow.createCell(6).setCellValue("지출")
+        dataRow.createCell(8).setCellValue("4500")
+
+        val result = RowParser().parse(wb)
+
+        assertEquals(java.time.LocalDate.of(2026, 1, 15), result[0].date)
     }
 }
