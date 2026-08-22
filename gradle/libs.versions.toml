@@ -27,6 +27,7 @@ testcontainer = "2.0.5" # See spring-boot-testcontainers and sync spring version
 jjwt = "0.12.6"
 postgresql = "42.7.11"
 jooq-docker = "8.0.30"
+poi = "5.4.1"
 [libraries]
 # kotlin
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
@@ -101,6 +102,8 @@ kotlin-reactor-extensions = { module = "io.projectreactor.kotlin:reactor-kotlin-
 kotlin-jackson = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jacksonKotlin" }
 commons-text = { module = "org.apache.commons:commons-text", version = "1.13.0" }
 dns-native-mac = { module = "io.netty:netty-resolver-dns-native-macos", version = "4.1.115.Final" }
+poi = { module = "org.apache.poi:poi", version.ref = "poi" }
+poi-ooxml = { module = "org.apache.poi:poi-ooxml", version.ref = "poi" }
 
 
 
@@ -118,6 +121,7 @@ persistence = ["spring-jpa", "hibernate-utils", "spring-flyway", "flyway-postgre
 persistence-database = ["postgresql"]
 persistence-database-embedded = ["spring-docker-compose"]
 persistence-test-testcontainer = ["spring-testcontainer", "testcontainer", "testcontainer-postgresql", "testcontainer-junit-jupiter", "spring-data-jpa-test"]
+poi = ["poi", "poi-ooxml"]
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

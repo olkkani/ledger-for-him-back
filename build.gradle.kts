@@ -45,6 +45,7 @@ dependencies {
     implementation(libs.bundles.persistence)
     implementation(libs.bundles.persistence.database)
     implementation(libs.p6spy)
+    implementation(libs.bundles.poi)
     testImplementation(libs.bundles.persistence.test.testcontainer)
     developmentOnly(libs.bundles.persistence.database.embedded)
     jooqCodegen(libs.postgresql)
