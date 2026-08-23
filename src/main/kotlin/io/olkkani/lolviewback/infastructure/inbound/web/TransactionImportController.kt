@@ -34,17 +34,24 @@ class TransactionImportController(
         }
 
         val userId = stubPrincipalResolver.currentUserId()
-        val workbook = file.inputStream.use { WorkbookFactory.create(it) }
+        val workbook =
+            try {
+                file.inputStream.use { WorkbookFactory.create(it) }
+            } catch (e: Exception) {
+                return ResponseEntity.badRequest().body(ImportBadRequestResponse("엑셀 파일을 읽을 수 없습니다."))
+            }
 
-        return when (val result = importService.import(workbook, userId)) {
-            is ImportResult.Success ->
-                ResponseEntity.ok(ImportSuccessResponse(result.importedCount))
-            is ImportResult.ValidationFailure ->
-                ResponseEntity.unprocessableEntity().body(
-                    ImportValidationFailureResponse(result.failures.map { ImportRowFailureDto(it.rowIndex, it.reason) }),
-                )
-            is ImportResult.DuplicateFailure ->
-                ResponseEntity.status(409).body(ImportDuplicateFailureResponse(result.message))
+        return workbook.use { wb ->
+            when (val result = importService.import(wb, userId)) {
+                is ImportResult.Success ->
+                    ResponseEntity.ok(ImportSuccessResponse(result.importedCount))
+                is ImportResult.ValidationFailure ->
+                    ResponseEntity.unprocessableEntity().body(
+                        ImportValidationFailureResponse(result.failures.map { ImportRowFailureDto(it.rowIndex, it.reason) }),
+                    )
+                is ImportResult.DuplicateFailure ->
+                    ResponseEntity.status(409).body(ImportDuplicateFailureResponse(result.message))
+            }
         }
     }
 }

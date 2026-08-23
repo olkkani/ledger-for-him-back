@@ -124,4 +124,24 @@ class TransactionImportControllerTest {
 
         verify(exactly = 0) { importService.import(any(), any()) }
     }
+
+    @Test
+    fun `corrupt file with xlsx extension returns 400 without calling the import service`() {
+        every { stubPrincipalResolver.currentUserId() } returns 1L
+
+        val corruptBytes = "this is not a real xlsx file, just plain garbage bytes".toByteArray()
+        val file =
+            MockMultipartFile(
+                "file",
+                "sample.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                corruptBytes,
+            )
+
+        mockMvc
+            .perform(multipart("/api/transactions/import").file(file))
+            .andExpect(status().isBadRequest)
+
+        verify(exactly = 0) { importService.import(any(), any()) }
+    }
 }
