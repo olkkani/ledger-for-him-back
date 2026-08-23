@@ -1,12 +1,14 @@
 package io.olkkani.lolviewback.domain.transaction
 
 import io.hypersistence.tsid.TSID
+import org.springframework.stereotype.Component
 import java.time.OffsetDateTime
 import java.time.ZoneId
 
 private val SEOUL = ZoneId.of("Asia/Seoul")
 private const val EXPENSE_LABEL = "지출"
 
+@Component
 class TransactionMapper(
     private val idGenerator: () -> Long = { TSID.Factory.getTsid().toLong() },
 ) {

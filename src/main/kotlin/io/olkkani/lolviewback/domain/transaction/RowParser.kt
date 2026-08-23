@@ -6,6 +6,7 @@ import org.apache.poi.ss.usermodel.DataFormatter
 import org.apache.poi.ss.usermodel.DateUtil
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.usermodel.Workbook
+import org.springframework.stereotype.Component
 import java.time.LocalDate
 
 data class RawTransactionRow(
@@ -24,6 +25,7 @@ private const val COL_INCOME_OR_EXPENSE = 6
 private const val COL_AMOUNT = 8
 private const val HEADER_ROW_INDEX = 0
 
+@Component
 class RowParser {
     private val formatter = DataFormatter()
 

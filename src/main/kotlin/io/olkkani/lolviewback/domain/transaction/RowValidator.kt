@@ -1,5 +1,6 @@
 package io.olkkani.lolviewback.domain.transaction
 
+import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -20,6 +21,7 @@ data class ValidatedRow(
 
 private val VALID_DIRECTIONS = setOf("수입", "지출")
 
+@Component
 class RowValidator {
     fun validate(row: RawTransactionRow): RowValidationResult {
         val isEntirelyBlank = row.date == null &&
