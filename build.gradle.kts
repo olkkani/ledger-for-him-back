@@ -42,6 +42,8 @@ dependencies {
     implementation(libs.bundles.kotlin.coroutines)
     testImplementation(libs.bundles.kotlin.coroutines.test)
 
+    implementation(libs.poi)
+
     implementation(libs.bundles.persistence)
     implementation(libs.bundles.persistence.database)
     implementation(libs.p6spy)

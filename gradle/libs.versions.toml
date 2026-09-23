@@ -27,6 +27,7 @@ jjwt = "0.12.6"
 postgresql = "42.7.11"
 jooq-docker = "8.0.30"
 jackson-module-kotlin = "3.2.2"
+poi = "5.0.0"
 [libraries]
 # kotlin
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
@@ -94,6 +95,7 @@ spring-docker-compose = { module = "org.springframework.boot:spring-boot-docker-
 reactor-test = { module = "io.projectreactor:reactor-test", version = "3.7.4" }
 embedded-redis = { module = "com.github.codemonstur:embedded-redis", version = "1.4.3" }
 tsid = { module = "io.hypersistence:hypersistence-tsid", version.ref = "tsid"}
+poi = { module = "org.apache.poi:poi-ooxml", version.ref = "poi" }
 
 # Other
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm", version.ref = "coroutines" }
