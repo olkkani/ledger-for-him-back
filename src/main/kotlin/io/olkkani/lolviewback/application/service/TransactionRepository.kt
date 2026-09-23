@@ -1,4 +1,4 @@
-package io.olkkani.lolviewback.domain.transaction
+package io.olkkani.lolviewback.application.service
 
 import org.jooq.DSLContext
 import org.jooq.generated.Tables.TRANSACTIONS

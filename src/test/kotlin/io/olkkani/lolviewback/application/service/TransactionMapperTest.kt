@@ -1,7 +1,8 @@
-package io.olkkani.lolviewback.domain.transaction
+package io.olkkani.lolviewback.application.service
 
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
+import java.time.Instant
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneId
@@ -39,7 +40,7 @@ class TransactionMapperTest {
     @Test
     fun `occurredAt is midnight Asia-Seoul on the source date`() {
         val tx = mapper.map(validatedRow("지출", date = LocalDate.of(2026, 1, 15)), userId = 1L)
-        val expected = OffsetDateTime.of(2026, 1, 15, 0, 0, 0, 0, ZoneId.of("Asia/Seoul").rules.getOffset(java.time.Instant.now()))
+        val expected = OffsetDateTime.of(2026, 1, 15, 0, 0, 0, 0, ZoneId.of("Asia/Seoul").rules.getOffset(Instant.now()))
         assertEquals(expected.toInstant(), tx.occurredAt.toInstant())
     }
 

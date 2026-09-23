@@ -1,4 +1,4 @@
-package io.olkkani.lolviewback.infastructure.inbound.web.dto
+package io.olkkani.lolviewback.adapter.inbound.web.dto
 
 data class ImportSuccessResponse(
     val importedCount: Int,

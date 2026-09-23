@@ -1,4 +1,4 @@
-package io.olkkani.lolviewback.infastructure.config
+package io.olkkani.lolviewback.adapter.config
 
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals

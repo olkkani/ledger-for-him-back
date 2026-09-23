@@ -1,7 +1,8 @@
-package io.olkkani.lolviewback.domain.transaction
+package io.olkkani.lolviewback.application.service
 
 import org.apache.poi.ss.usermodel.WorkbookFactory
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import org.jooq.DSLContext
 import org.jooq.generated.Tables.TRANSACTIONS
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -13,7 +14,11 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.InputStream
 import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.ZoneId
+import java.util.Date
 import kotlin.test.assertEquals
 
 @Testcontainers
@@ -38,7 +43,7 @@ class TransactionImportEndToEndTest {
     lateinit var importService: ImportService
 
     @Autowired
-    lateinit var dsl: org.jooq.DSLContext
+    lateinit var dsl: DSLContext
 
     /**
      * Builds an in-memory .xlsx workbook matching the real source spreadsheet's
@@ -46,7 +51,7 @@ class TransactionImportEndToEndTest {
      * Only the columns RowParser actually reads (0, 2, 4, 6, 8) are populated;
      * the rest are present as headers only, matching production data shape.
      */
-    private fun buildFixtureWorkbook(): java.io.InputStream {
+    private fun buildFixtureWorkbook(): InputStream {
         val wb = XSSFWorkbook()
         val sheet = wb.createSheet("data")
         val headerRow = sheet.createRow(0)
@@ -62,9 +67,9 @@ class TransactionImportEndToEndTest {
             val dateCell = row.createCell(0)
             dateCell.cellStyle = dateCellStyle
             dateCell.setCellValue(
-                java.util.Date.from(
-                    java.time.LocalDate.of(parts[0], parts[1], parts[2])
-                        .atStartOfDay(java.time.ZoneId.systemDefault()).toInstant(),
+                Date.from(
+                    LocalDate.of(parts[0], parts[1], parts[2])
+                        .atStartOfDay(ZoneId.systemDefault()).toInstant(),
                 ),
             )
             row.createCell(2).setCellValue(category)

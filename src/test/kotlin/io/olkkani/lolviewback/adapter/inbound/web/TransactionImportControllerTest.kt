@@ -1,13 +1,13 @@
-package io.olkkani.lolviewback.infastructure.inbound.web
+package io.olkkani.lolviewback.adapter.inbound.web
 
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import io.olkkani.lolviewback.domain.transaction.ImportResult
-import io.olkkani.lolviewback.domain.transaction.ImportService
-import io.olkkani.lolviewback.domain.transaction.RowFailure
-import io.olkkani.lolviewback.infastructure.config.StubPrincipalResolver
+import io.olkkani.lolviewback.application.service.ImportResult
+import io.olkkani.lolviewback.application.service.ImportService
+import io.olkkani.lolviewback.application.service.RowFailure
+import io.olkkani.lolviewback.adapter.config.StubPrincipalResolver
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

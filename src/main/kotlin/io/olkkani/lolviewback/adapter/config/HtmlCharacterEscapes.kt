@@ -1,4 +1,4 @@
-package io.olkkani.lolviewback.infastructure.config
+package io.olkkani.lolviewback.adapter.config
 
 import com.fasterxml.jackson.core.SerializableString
 import com.fasterxml.jackson.core.io.CharacterEscapes

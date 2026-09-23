@@ -1,4 +1,4 @@
-package io.olkkani.lolviewback.domain.transaction
+package io.olkkani.lolviewback.application.service
 
 import io.mockk.every
 import io.mockk.mockk
@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.dao.DuplicateKeyException
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.OffsetDateTime
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
@@ -27,7 +28,7 @@ class ImportServiceTest {
         userId = 1L,
         amount = BigDecimal("-4500"),
         description = "스타벅스",
-        occurredAt = java.time.OffsetDateTime.now(),
+        occurredAt = OffsetDateTime.now(),
         category = "식비",
     )
 

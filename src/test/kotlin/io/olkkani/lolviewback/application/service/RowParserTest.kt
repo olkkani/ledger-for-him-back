@@ -1,10 +1,12 @@
-package io.olkkani.lolviewback.domain.transaction
+package io.olkkani.lolviewback.application.service
 
-import org.apache.poi.ss.usermodel.Cell
+import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
+import java.time.ZoneId
+import java.util.Date
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 class RowParserTest {
@@ -20,7 +22,7 @@ class RowParserTest {
             val row = sheet.createRow(rowIdx)
             cells.forEachIndexed { colIdx, value ->
                 if (value != null) {
-                    row.createCell(colIdx, org.apache.poi.ss.usermodel.CellType.STRING)
+                    row.createCell(colIdx, CellType.STRING)
                         .setCellValue(value)
                 }
             }
@@ -82,12 +84,12 @@ class RowParserTest {
         }
         val dateCell = dataRow.createCell(COL_DATE_TEST_INDEX)
         dateCell.cellStyle = dateCellStyle
-        dateCell.setCellValue(java.util.Date.from(java.time.LocalDate.of(2026, 1, 15).atStartOfDay(java.time.ZoneId.systemDefault()).toInstant()))
+        dateCell.setCellValue(Date.from(LocalDate.of(2026, 1, 15).atStartOfDay(ZoneId.systemDefault()).toInstant()))
         dataRow.createCell(6).setCellValue("지출")
         dataRow.createCell(8).setCellValue("4500")
 
         val result = RowParser().parse(wb)
 
-        assertEquals(java.time.LocalDate.of(2026, 1, 15), result[0].date)
+        assertEquals(LocalDate.of(2026, 1, 15), result[0].date)
     }
 }

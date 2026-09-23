@@ -1,4 +1,4 @@
-package io.olkkani.lolviewback.infastructure.config
+package io.olkkani.lolviewback.adapter.config
 
 import org.springframework.boot.flyway.autoconfigure.FlywayMigrationStrategy
 import org.springframework.context.annotation.Bean

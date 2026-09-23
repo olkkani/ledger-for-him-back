@@ -1,4 +1,4 @@
-package io.olkkani.lolviewback.domain.transaction
+package io.olkkani.lolviewback.application.service
 
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
