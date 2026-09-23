@@ -21,11 +21,20 @@ data class CategoryCandidate(
 class CategoryRecommendationService(private val repository: TransactionRepository) {
 
     fun recommend(userId: Long, amount: BigDecimal?, targetDateTime: OffsetDateTime): List<CategoryCandidate> {
+        // Repository comparisons (occurred_at < targetDateTime) are instant-based and
+        // correct on the original targetDateTime. Hour/day-of-week EXTRACTION must happen
+        // in Asia/Seoul (matching the repository's `AT TIME ZONE 'Asia/Seoul'` aggregates),
+        // not in whatever offset targetDateTime happens to carry (e.g. UTC from the
+        // controller's `OffsetDateTime.now()` default on UTC containers).
         val aggregates = repository.findCategoryAggregates(userId, targetDateTime)
-        val targetHour = targetDateTime.hour
-        val targetDow = targetDateTime.dayOfWeek.value % 7 // Postgres DOW: 0=Sunday..6=Saturday; java DayOfWeek: 1=Monday..7=Sunday
+        val localTarget = targetDateTime.atZoneSameInstant(SEOUL)
+        val targetHour = localTarget.hour
+        val targetDow = localTarget.dayOfWeek.value % 7 // Postgres DOW: 0=Sunday..6=Saturday; java DayOfWeek: 1=Monday..7=Sunday
 
         val scored = if (amount == null) {
+            // Both sides are already normalized (TRIM(LOWER(...))) by the repository, so
+            // this comparison is spelling-independent — a differently-spelled-but-same-
+            // normalized-category row still matches for the prior-category boost.
             val priorCategory = repository.findMostRecentCategory(userId, targetDateTime)
             aggregates.map { agg ->
                 val score = CategoryRecommendationScorer.scoreStage1(
