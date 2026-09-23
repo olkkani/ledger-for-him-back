@@ -62,7 +62,13 @@ class TransactionRepository(private val dsl: DSLContext) {
             Double::class.java,
             dow,
         )
-        val mostRecentCategory = DSL.arrayAgg(TRANSACTIONS.CATEGORY).orderBy(TRANSACTIONS.OCCURRED_AT.desc())
+        // Secondary sort key TRANSACTIONS.ID.desc() makes "most recent" deterministic when
+        // two differently-spelled-but-same-normalized rows share the exact latest
+        // occurred_at (realistic for imported rows, which commonly sit at midnight).
+        // Without it, this ORDER BY and findMostRecentCategory's independent ORDER BY
+        // could each break same-timestamp ties differently and non-deterministically.
+        val mostRecentCategory = DSL.arrayAgg(TRANSACTIONS.CATEGORY)
+            .orderBy(TRANSACTIONS.OCCURRED_AT.desc(), TRANSACTIONS.ID.desc())
         val avgAbsAmount = DSL.avg(DSL.abs(TRANSACTIONS.AMOUNT))
         val frequency = DSL.count()
 
@@ -81,6 +87,7 @@ class TransactionRepository(private val dsl: DSLContext) {
             .fetch { row ->
                 CategoryAggregate(
                     category = row[mostRecentCategory].first(),
+                    normalizedCategory = row[normalizedCategory],
                     avgAmount = row[avgAbsAmount] ?: BigDecimal.ZERO,
                     typicalHourRadians = row[hourAngle] ?: 0.0,
                     typicalDowRadians = row[dowAngle] ?: 0.0,
@@ -89,14 +96,22 @@ class TransactionRepository(private val dsl: DSLContext) {
             }
     }
 
-    /** The category of the user's single most recent transaction strictly before targetDateTime, or null if none exists. */
+    /**
+     * The normalized (TRIM(LOWER(...))) category of the user's single most recent
+     * transaction strictly before targetDateTime, or null if none exists. Normalized so
+     * the caller can compare it against CategoryAggregate.normalizedCategory without a
+     * raw-spelling mismatch. TRANSACTIONS.ID.desc() is a deterministic secondary sort key,
+     * matching findCategoryAggregates' ARRAY_AGG ordering so same-timestamp ties resolve
+     * identically in both queries.
+     */
     fun findMostRecentCategory(userId: Long, targetDateTime: OffsetDateTime): String? {
-        return dsl.select(TRANSACTIONS.CATEGORY)
+        val normalizedCategory = DSL.trim(DSL.lower(TRANSACTIONS.CATEGORY))
+        return dsl.select(normalizedCategory)
             .from(TRANSACTIONS)
             .where(TRANSACTIONS.USER_ID.eq(userId))
             .and(TRANSACTIONS.OCCURRED_AT.lt(targetDateTime))
-            .orderBy(TRANSACTIONS.OCCURRED_AT.desc())
+            .orderBy(TRANSACTIONS.OCCURRED_AT.desc(), TRANSACTIONS.ID.desc())
             .limit(1)
-            .fetchOne(TRANSACTIONS.CATEGORY)
+            .fetchOne(normalizedCategory)
     }
 }

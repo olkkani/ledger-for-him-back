@@ -14,8 +14,14 @@ class CategoryRecommendationServiceTest {
     private val service = CategoryRecommendationService(repository)
     private val targetDateTime = OffsetDateTime.parse("2026-06-01T12:00:00+09:00")
 
-    private fun aggregate(category: String, avgAmount: String, hourRad: Double, dowRad: Double, freq: Int) =
-        CategoryAggregate(category, BigDecimal(avgAmount), hourRad, dowRad, freq)
+    private fun aggregate(
+        category: String,
+        avgAmount: String,
+        hourRad: Double,
+        dowRad: Double,
+        freq: Int,
+        normalizedCategory: String = category.trim().lowercase(),
+    ) = CategoryAggregate(category, normalizedCategory, BigDecimal(avgAmount), hourRad, dowRad, freq)
 
     @Test
     fun `stage 1 selected when amount is null, uses prior category boost`() {
@@ -88,6 +94,42 @@ class CategoryRecommendationServiceTest {
         val result = service.recommend(userId = 1L, amount = null, targetDateTime = targetDateTime)
 
         assertEquals(emptyList(), result)
+    }
+
+    @Test
+    fun `UTC target instant scores identically to its Seoul-local equivalent`() {
+        val utcTarget = OffsetDateTime.parse("2026-06-01T03:00:00Z") // == 2026-06-01T12:00:00+09:00
+        val seoulTarget = OffsetDateTime.parse("2026-06-01T12:00:00+09:00")
+
+        // Candidate typical hour/dow chosen to be off-center so a 9h shift would change the score.
+        val candidates = listOf(
+            aggregate("식비", "10000", hourRad = 0.0, dowRad = 0.0, freq = 5),
+            aggregate("교통", "3000", hourRad = 0.0, dowRad = 0.0, freq = 5),
+        )
+        every { repository.findCategoryAggregates(1L, utcTarget) } returns candidates
+        every { repository.findCategoryAggregates(1L, seoulTarget) } returns candidates
+        every { repository.findMostRecentCategory(1L, utcTarget) } returns "교통"
+        every { repository.findMostRecentCategory(1L, seoulTarget) } returns "교통"
+
+        val utcResult = service.recommend(userId = 1L, amount = null, targetDateTime = utcTarget)
+        val seoulResult = service.recommend(userId = 1L, amount = null, targetDateTime = seoulTarget)
+
+        assertEquals(seoulResult.map { it.category to it.score }, utcResult.map { it.category to it.score })
+    }
+
+    @Test
+    fun `prior category boost matches on normalized category, not raw spelling`() {
+        every { repository.findCategoryAggregates(1L, targetDateTime) } returns listOf(
+            // Most-recent-original-spelling has a trailing space, but its normalized key matches.
+            aggregate("식비 ", "10000", hourRad = 0.0, dowRad = 0.0, freq = 5, normalizedCategory = "식비"),
+            aggregate("교통", "3000", hourRad = 0.0, dowRad = 0.0, freq = 5, normalizedCategory = "교통"),
+        )
+        // findMostRecentCategory now returns the normalized key (no trailing space).
+        every { repository.findMostRecentCategory(1L, targetDateTime) } returns "식비"
+
+        val result = service.recommend(userId = 1L, amount = null, targetDateTime = targetDateTime)
+
+        assertEquals("식비 ", result.first().category)
     }
 
     @Test

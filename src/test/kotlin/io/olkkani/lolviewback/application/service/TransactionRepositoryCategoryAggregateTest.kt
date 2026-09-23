@@ -148,6 +148,31 @@ class TransactionRepositoryCategoryAggregateTest {
     }
 
     @Test
+    fun `findCategoryAggregates most-recent-spelling and findMostRecentCategory agree deterministically on same-timestamp ties`() {
+        // Two rows, same normalized category, same occurred_at timestamp, different spelling/id.
+        // Without a deterministic secondary sort key, ARRAY_AGG's ORDER BY and
+        // findMostRecentCategory's independent ORDER BY could each pick a different "latest" row.
+        repository.insertAll(
+            listOf(
+                tx(1, "식비", "2026-01-10T12:00:00+09:00"),
+                tx(2, "식비 ", "2026-01-10T12:00:00+09:00"), // same occurred_at, higher id, trailing space
+            ),
+        )
+
+        val target = OffsetDateTime.parse("2026-06-01T00:00:00+09:00")
+
+        // Repeated calls must be stable (deterministic), and the two queries must agree:
+        // findMostRecentCategory's normalized result must equal the aggregate's normalizedCategory.
+        val firstRun = repository.findCategoryAggregates(userId = 1L, targetDateTime = target).single()
+        val secondRun = repository.findCategoryAggregates(userId = 1L, targetDateTime = target).single()
+        val mostRecent = repository.findMostRecentCategory(userId = 1L, targetDateTime = target)
+
+        assertEquals(firstRun.category, secondRun.category, "most-recent spelling must be stable across repeated calls")
+        assertEquals("식비 ", firstRun.category, "higher id (id=2) must win the same-timestamp tie")
+        assertEquals(firstRun.normalizedCategory, mostRecent)
+    }
+
+    @Test
     fun `findMostRecentCategory returns the category of the latest transaction before targetDateTime`() {
         repository.insertAll(
             listOf(

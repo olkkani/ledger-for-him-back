@@ -42,7 +42,7 @@ class CategoryRecommendationService(private val repository: TransactionRepositor
                     targetDow = targetDow,
                     candidateTypicalHour = radiansToHour(agg.typicalHourRadians),
                     candidateTypicalDow = radiansToDow(agg.typicalDowRadians),
-                    isPriorCategory = agg.category == priorCategory,
+                    isPriorCategory = agg.normalizedCategory == priorCategory,
                 )
                 CategoryCandidate(agg.category, score, agg.frequency)
             }
