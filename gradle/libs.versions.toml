@@ -27,7 +27,7 @@ jjwt = "0.12.6"
 postgresql = "42.7.11"
 jooq-docker = "8.0.30"
 jackson-module-kotlin = "3.2.2"
-poi = "5.0.0"
+poi = "5.4.1"
 [libraries]
 # kotlin
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
