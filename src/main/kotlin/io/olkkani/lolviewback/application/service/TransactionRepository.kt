@@ -42,7 +42,15 @@ class TransactionRepository(private val dsl: DSLContext) {
             TRANSACTIONS.OCCURRED_AT,
         )
         val hour = DSL.extract(occurredAtSeoul, DatePart.HOUR)
-        val dow = DSL.extract(occurredAtSeoul, DatePart.DAY_OF_WEEK)
+        // jOOQ's typed DatePart.DAY_OF_WEEK remaps to the ISO/SQL convention (1=Sunday..7=Saturday)
+        // on Postgres, shifting every value by +1 from Postgres' native EXTRACT(DOW) (0=Sunday..6=Saturday).
+        // CategoryRecommendationScorer (Task 1) hardcodes the native 0-6 convention, so we must bypass
+        // jOOQ's DatePart here and use raw SQL to get Postgres' unshifted value.
+        val dow = DSL.field(
+            "extract(dow from {0})",
+            Double::class.java,
+            occurredAtSeoul,
+        )
         // Circular mean (atan2/sin/cos) has no jOOQ typed equivalent — raw SQL is required here too.
         val hourAngle = DSL.field(
             "atan2(avg(sin(2 * pi() * {0} / 24)), avg(cos(2 * pi() * {0} / 24)))",

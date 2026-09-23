@@ -131,6 +131,23 @@ class TransactionRepositoryCategoryAggregateTest {
     }
 
     @Test
+    fun `findCategoryAggregates day-of-week extraction uses Postgres native 0-6 convention not ISO 1-7`() {
+        // 2026-01-11 is a Sunday. Postgres' native EXTRACT(DOW) = 0 for Sunday (0=Sunday..6=Saturday).
+        // jOOQ's typed DatePart.DAY_OF_WEEK would instead emit the ISO/SQL-shifted value (1 for Sunday),
+        // which is the exact bug this test guards against: CategoryRecommendationScorer (Task 1) hardcodes
+        // the Postgres 0-6 convention (WEEKEND_DOW = setOf(0, 6)), so recovering 1 here instead of 0 would
+        // mean every day is misclassified downstream.
+        repository.insertAll(listOf(tx(1, "주말", "2026-01-11T12:00:00+09:00")))
+
+        val aggregates = repository.findCategoryAggregates(userId = 1L, targetDateTime = OffsetDateTime.parse("2026-06-01T00:00:00+09:00"))
+
+        // circular mean of a single point at dow index d -> angle = 2*pi()*d/7, recoverable via degrees/  (360/7)
+        val dowAngle = aggregates.single().typicalDowRadians
+        val recoveredDow = Math.round(Math.toDegrees(dowAngle) / (360.0 / 7.0)).let { if (it < 0) it + 7 else it }
+        assertEquals(0L, recoveredDow, "expected Postgres-native Sunday index 0, got $recoveredDow")
+    }
+
+    @Test
     fun `findMostRecentCategory returns the category of the latest transaction before targetDateTime`() {
         repository.insertAll(
             listOf(
