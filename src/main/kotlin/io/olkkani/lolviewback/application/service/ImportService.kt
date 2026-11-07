@@ -1,5 +1,6 @@
 package io.olkkani.lolviewback.application.service
 
+import io.olkkani.lolviewback.adapter.outbound.persistence.dao.TransactionDao
 import org.apache.poi.ss.usermodel.Workbook
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Service
@@ -17,7 +18,7 @@ class ImportService(
     private val rowParser: RowParser,
     private val rowValidator: RowValidator,
     private val transactionMapper: TransactionMapper,
-    private val transactionRepository: TransactionRepository,
+    private val transactionRepository: TransactionDao,
 ) {
     fun import(workbook: Workbook, userId: Long): ImportResult {
         val rawRows = rowParser.parse(workbook)

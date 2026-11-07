@@ -1,5 +1,6 @@
 package io.olkkani.lolviewback.application.service
 
+import io.olkkani.lolviewback.adapter.outbound.persistence.dao.TransactionDao
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.OffsetDateTime
@@ -18,7 +19,7 @@ data class CategoryCandidate(
  * stage parameter, per docs/designs/transaction-category-recommendation.md.
  */
 @Service
-class CategoryRecommendationService(private val repository: TransactionRepository) {
+class CategoryRecommendationService(private val repository: TransactionDao) {
 
     fun recommend(userId: Long, amount: BigDecimal?, targetDateTime: OffsetDateTime): List<CategoryCandidate> {
         // Repository comparisons (occurred_at < targetDateTime) are instant-based and

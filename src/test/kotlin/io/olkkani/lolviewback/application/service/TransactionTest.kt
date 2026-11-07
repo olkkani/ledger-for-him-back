@@ -1,5 +1,6 @@
 package io.olkkani.lolviewback.application.service
 
+import io.olkkani.lolviewback.adapter.outbound.persistence.entity.Transaction
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.OffsetDateTime

@@ -24,7 +24,7 @@ Building a personal 가계부 (household ledger) backend in Kotlin/Spring Boot. 
 ## Premises
 
 1. **Staged replacement model, not a combined weighted sum.** Before an amount is entered (Stage 1): time-of-day + day-of-week signal, plus a boost for the category of the user's immediately-preceding transaction. Once an amount is entered (Stage 2): time/dow signal + amount-similarity signal; the prior-category boost drops out entirely — it does not persist alongside amount similarity. — agreed
-2. **Separate, independent endpoint** from the existing `GET /api/transactions/recommendations` (description recommendation). No shared scoring code is assumed; this design does not modify the sibling design. — agreed
+2. **Separate, independent endpoint** from the existing `GET /transactions/recommendations` (description recommendation). No shared scoring code is assumed; this design does not modify the sibling design. — agreed
 3. **Backend-only design.** "0-tap" is the UX aspiration a future client would implement (auto-selecting top-1); this design's job stops at producing a candidate list good enough for that to make sense later. — agreed
 4. **Weights determined by backtest, not intuition** — same strategy as the sibling `description`-recommendation design, using the same ~1 year of real transaction history. — agreed
 
@@ -44,7 +44,7 @@ Model category → category transition probability (e.g. 장보기 → 외식 pa
 **Approach A: Staged independent queries.**
 
 ```
-GET /api/transactions/recommendations/category?amount={BigDecimal, optional}&targetDateTime={ISO-8601, optional, default=now}
+GET /transactions/recommendations/category?amount={BigDecimal, optional}&targetDateTime={ISO-8601, optional, default=now}
 
 user_id from Spring Security principal (same rule as sibling design — never client-supplied)
 
@@ -141,7 +141,7 @@ Existing deployment pipeline covers this — same Spring Boot service, no new di
 1. Extend or fork the sibling design's backtest harness to add Stage 1 and Stage 2 category scorers, using `TRIM(LOWER(category))` grouping from the start.
 2. Grid-search weights per stage on the first ~80% of the year; evaluate once on the held-out 20%, compared against the naive most-frequent-category baseline, per stage.
 3. Implement `RecommendationScorer` additions (or a new `CategoryRecommendationScorer`) with the two-stage formulas above — pure functions, unit-testable without Spring context.
-4. Implement `GET /api/transactions/recommendations/category`, `user_id` from Spring Security principal, stage selected by `amount` presence, same `occurred_at < targetDateTime` boundary.
+4. Implement `GET /transactions/recommendations/category`, `user_id` from Spring Security principal, stage selected by `amount` presence, same `occurred_at < targetDateTime` boundary.
 5. Tests mirror the sibling design's plan: scorer unit tests (per stage, tie-breaking, edge cases), repository integration tests (aggregation SQL, `TRIM(LOWER(category))` grouping, hour/dow representative-value methods, timezone boundary), controller tests (principal-scoped, stage switching on amount presence/absence).
 6. Wire into real usage; watch whether category top-1 hit rate (the eventual "0-tap" bar) holds up on new entries — this is the number that would justify a future client auto-select feature, not built here.
 

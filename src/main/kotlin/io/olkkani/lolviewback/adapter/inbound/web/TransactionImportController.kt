@@ -19,7 +19,7 @@ import org.springframework.web.multipart.MultipartFile
 private val ALLOWED_EXTENSIONS = setOf("xls", "xlsx")
 
 @RestController
-@RequestMapping("/api/transactions")
+@RequestMapping("/transactions")
 class TransactionImportController(
     private val importService: ImportService,
     private val stubPrincipalResolver: StubPrincipalResolver,

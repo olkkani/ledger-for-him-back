@@ -1,5 +1,7 @@
-package io.olkkani.lolviewback.application.service
+package io.olkkani.lolviewback.adapter.outbound.persistence.dao
 
+import io.olkkani.lolviewback.adapter.outbound.persistence.entity.Transaction
+import io.olkkani.lolviewback.application.service.CategoryAggregate
 import org.jooq.DSLContext
 import org.jooq.DatePart
 import org.jooq.generated.Tables.TRANSACTIONS
@@ -11,7 +13,7 @@ import java.time.LocalDateTime
 import java.time.OffsetDateTime
 
 @Repository
-class TransactionRepository(private val dsl: DSLContext) {
+class TransactionDao(private val dsl: DSLContext) {
 
     @Transactional
     fun insertAll(transactions: List<Transaction>) {
@@ -23,6 +25,7 @@ class TransactionRepository(private val dsl: DSLContext) {
                 .set(TRANSACTIONS.DESCRIPTION, tx.description)
                 .set(TRANSACTIONS.OCCURRED_AT, tx.occurredAt)
                 .set(TRANSACTIONS.CATEGORY, tx.category)
+                .set(TRANSACTIONS.MEMO, tx.memo)
         }
         dsl.batch(inserts).execute()
     }

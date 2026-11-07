@@ -39,11 +39,6 @@ spring:
           time_zone: UTC
 #        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
 #        implicit-strategy: org.springframework.boot.hibernate.SpringImplicitNamingStrategy
-lol-api:
-  key: ${LOL_API_KEY}
-  url:
-    tournament: ${LOL_API_URL_TOURNAMENT}
-    match: ${LOL_API_URL_MATCH}
 jwt:
   secret: ${JWT_SECRET}
   expiration-hours: 24
@@ -56,7 +51,10 @@ spring:
     restart:
       enabled: true
 server:
-  port: 9031
+  port: 9033
+app:
+  cors:
+    allowed-origins: http://localhost:3000
 --- # server-prod
 spring:
   config:
@@ -66,6 +64,9 @@ spring:
     timeout-per-shutdown-phase: 30s
 server:
   shutdown: graceful
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}
 logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
@@ -81,7 +82,7 @@ spring:
     # LocalFlywayCleanConfig 가 clean() 을 호출하려면 필요. 이 블록은 persistence-local
     # 전용이라 persistence-prod 는 Spring Boot 기본값(cleanDisabled=true)을 그대로 유지한다.
     clean-disabled: false
-    locations: classpath:db/migration,classpath:db/seed
+    locations: classpath:db/migration,classpath:db/test-fixtures
   docker:
     compose:
       # explicit restatement of the 4.1.0 default: container is stopped (not removed)

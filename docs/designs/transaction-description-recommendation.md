@@ -71,7 +71,7 @@ Chosen because it's the fastest to build, the weights are directly interpretable
 ### API shape
 
 ```
-GET /api/transactions/recommendations?amount={BigDecimal}&targetDateTime={ISO-8601, optional, default=now}
+GET /transactions/recommendations?amount={BigDecimal}&targetDateTime={ISO-8601, optional, default=now}
 
 user_id is taken from the authenticated principal (Spring Security context), never
 from a query parameter or request body — accepting it as client input would let one
@@ -159,7 +159,7 @@ If a separate auth design/session already covers this, reference it here instead
 2. Backfill/import the existing 1 year of real transaction data into the new schema.
 3. Build the backtest harness as a standalone script/test (not part of the production API) using the scoring formula above with a few candidate weight sets, grid-searched on the first ~80% of the year only (see Success Criteria). Include `mode`, `circular_mean`, and `none` variants of `typical_hour`/`typical_dow` in the grid search, plus the naive most-frequent-description baseline.
 4. Evaluate the single best combination once against the held-out final ~20% of the year, compared against the naive baseline. Pick the weight set (and hour/dow representative-value method) that wins on the held-out set, not the training set.
-5. Implement the `GET /api/transactions/recommendations` endpoint using the chosen weights, with `user_id` sourced from the Spring Security authentication context (never a query parameter), and the same `occurred_at < targetDateTime` boundary the backtest used.
+5. Implement the `GET /transactions/recommendations` endpoint using the chosen weights, with `user_id` sourced from the Spring Security authentication context (never a query parameter), and the same `occurred_at < targetDateTime` boundary the backtest used.
 6. Wire the endpoint into real usage and watch whether the top-5 hit rate holds up on new (not backtested) entries.
 7. Write tests per the coverage plan below alongside each implementation step — not deferred to a follow-up.
 
@@ -175,7 +175,7 @@ If a separate auth design/session already covers this, reference it here instead
   - `TRIM(LOWER(description))` merges casing/whitespace variants into one group
   - The most-recently-used original spelling (not the normalized key) is what's returned in the response
   - Fewer than 5 (or zero) qualifying candidates returns a short/empty list, never pads or errors
-- **`TransactionRepository` (integration, Testcontainers Postgres):**
+- **`TransactionDao` (integration, Testcontainers Postgres):**
   - Each backtested hour/dow representative-value method (`mode`, `circular_mean`, `none`) produces the expected value for a known bimodal fixture (e.g. rows at both 9am and 9pm) — including the circular-mean near-zero-vector edge case for exactly-opposite times
   - `occurred_at < :targetDateTime` filter excludes rows at or after the given time (future-leak prevention)
   - `EXTRACT` results reflect `Asia/Seoul`, not UTC or server-default timezone, near a midnight boundary
@@ -205,7 +205,7 @@ finding above. Run with Claude Code or Codex; checkbox as you ship.
 
 - [ ] **T1 (P1, human: ~4h / CC: ~30min)** — backtest — Grid-search `mode`/`circular_mean`/`none` hour-representation methods instead of committing to circular mean upfront
   - Surfaced by: Architecture Review + Outside Voice tension 1 — transaction-description-recommendation.md:83-84, MODE() ties break toward smallest value, but circular mean is itself unstable for exactly-opposite bimodal times
-  - Files: backtest harness, `src/main/resources/db/migration/V1.1__create-tables.sql`, future `TransactionRepository`
+  - Files: backtest harness, `src/main/resources/db/migration/V1.1__create-tables.sql`, future `TransactionDao`
   - Verify: backtest reports hit rate for all three variants on held-out data; the winner (not an assumption) drives the shipped SQL
 - [ ] **T2 (P1, human: ~30min / CC: ~5min)** — controller — Source `user_id` from Spring Security auth context, not a query parameter
   - Surfaced by: Architecture Review — transaction-description-recommendation.md:69, missing user_id source was a data-leak risk
@@ -214,7 +214,7 @@ finding above. Run with Claude Code or Codex; checkbox as you ship.
   - Blocked by: Prerequisites (users table, Spring Security config, principal→user_id mapping) — Outside Voice tension 8
 - [ ] **T3 (P2, human: ~1h / CC: ~10min)** — repository — Group via SQL `GROUP BY TRIM(LOWER(description))`, not in application code
   - Surfaced by: Performance Review + Outside Voice tension 5 — transaction-description-recommendation.md:93, ambiguous "in-memory or via the query" wording, and normalization claim contradicted the un-normalized `GROUP BY`
-  - Files: future `TransactionRepository`
+  - Files: future `TransactionDao`
   - Verify: single query per request, no post-fetch `groupBy` call in the service layer; "Starbucks" and "starbucks " land in one group
 - [ ] **T4 (P1, human: ~4h / CC: ~30min)** — test suite — Implement the full Test Plan above alongside each implementation step
   - Surfaced by: Test Review — 14+ gaps identified, 0/14 paths currently tested (greenfield)
@@ -222,7 +222,7 @@ finding above. Run with Claude Code or Codex; checkbox as you ship.
   - Verify: `./gradlew test` passes with all listed cases present
 - [ ] **T5 (P1, human: ~1h / CC: ~10min)** — repository — Match production query's future-leak boundary to the backtest's `history_strictly_before`
   - Surfaced by: Outside Voice tension 2 — production SQL had no `occurred_at < targetDateTime` filter, so backdated entries could aggregate against not-yet-happened transactions
-  - Files: future `TransactionRepository`
+  - Files: future `TransactionDao`
   - Verify: integration test confirms a transaction dated after `targetDateTime` never appears in that request's candidate aggregation
 - [ ] **T6 (P1, human: ~15min / CC: ~5min)** — scorer — Compare amounts by absolute value, independent of sign convention
   - Surfaced by: Outside Voice tension 4 — `amountSim`'s zero-floor breaks for negative averages; sign convention (income/expense) is decided in the separate Excel-import design, not here

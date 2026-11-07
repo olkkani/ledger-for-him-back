@@ -1,5 +1,7 @@
 package io.olkkani.lolviewback.application.service
 
+import io.olkkani.lolviewback.adapter.outbound.persistence.dao.TransactionDao
+import io.olkkani.lolviewback.adapter.outbound.persistence.entity.Transaction
 import org.jooq.DSLContext
 import org.jooq.generated.Tables.TRANSACTIONS
 import org.junit.jupiter.api.BeforeEach
@@ -36,7 +38,7 @@ class TransactionRepositoryIntegrationTest {
     }
 
     @Autowired
-    lateinit var repository: TransactionRepository
+    lateinit var repository: TransactionDao
 
     @Autowired
     lateinit var dsl: DSLContext

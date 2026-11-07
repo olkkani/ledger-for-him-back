@@ -1,8 +1,10 @@
 package io.olkkani.lolviewback.application.service
 
+import io.olkkani.lolviewback.adapter.outbound.persistence.entity.Transaction
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import io.olkkani.lolviewback.adapter.outbound.persistence.dao.TransactionDao
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.junit.jupiter.api.Test
 import org.springframework.dao.DuplicateKeyException
@@ -38,7 +40,7 @@ class ImportServiceTest {
         val rowParser = mockk<RowParser> { every { parse(any()) } returns rawRows }
         val rowValidator = mockk<RowValidator> { every { validate(rawRows[0]) } returns RowValidationResult.Valid(validatedRow(2)) }
         val mapper = mockk<TransactionMapper> { every { map(any(), 1L) } returns sampleTx(1L) }
-        val repository = mockk<TransactionRepository>(relaxed = true)
+        val repository = mockk<TransactionDao>(relaxed = true)
 
         val service = ImportService(rowParser, rowValidator, mapper, repository)
         val result = service.import(XSSFWorkbook(), userId = 1L)
@@ -60,7 +62,7 @@ class ImportServiceTest {
             every { validate(rawRows[1]) } returns RowValidationResult.Invalid(3, "수입/지출 값이 올바르지 않습니다: 이체")
         }
         val mapper = mockk<TransactionMapper>()
-        val repository = mockk<TransactionRepository>(relaxed = true)
+        val repository = mockk<TransactionDao>(relaxed = true)
 
         val service = ImportService(rowParser, rowValidator, mapper, repository)
         val result = service.import(XSSFWorkbook(), userId = 1L)
@@ -83,7 +85,7 @@ class ImportServiceTest {
             every { validate(rawRows[1]) } returns RowValidationResult.Blank
         }
         val mapper = mockk<TransactionMapper> { every { map(any(), 1L) } returns sampleTx(1L) }
-        val repository = mockk<TransactionRepository>(relaxed = true)
+        val repository = mockk<TransactionDao>(relaxed = true)
 
         val service = ImportService(rowParser, rowValidator, mapper, repository)
         val result = service.import(XSSFWorkbook(), userId = 1L)
@@ -98,7 +100,7 @@ class ImportServiceTest {
         val rowParser = mockk<RowParser> { every { parse(any()) } returns rawRows }
         val rowValidator = mockk<RowValidator> { every { validate(rawRows[0]) } returns RowValidationResult.Valid(validatedRow(2)) }
         val mapper = mockk<TransactionMapper> { every { map(any(), 1L) } returns sampleTx(1L) }
-        val repository = mockk<TransactionRepository> {
+        val repository = mockk<TransactionDao> {
             every { insertAll(any()) } throws DuplicateKeyException("duplicate key value violates unique constraint")
         }
 

@@ -12,7 +12,7 @@ import java.math.BigDecimal
 import java.time.OffsetDateTime
 
 @RestController
-@RequestMapping("/api/transactions/recommendations")
+@RequestMapping("/transactions/recommendations")
 class CategoryRecommendationController(
     private val service: CategoryRecommendationService,
     private val stubPrincipalResolver: StubPrincipalResolver,

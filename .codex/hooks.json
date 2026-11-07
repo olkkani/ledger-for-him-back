@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/jin/Documents/repository/ledger-for-him-back/develop/.codex/hooks/check-gstack.sh'"
+          }
+        ]
+      }
+    ]
+  }
+}

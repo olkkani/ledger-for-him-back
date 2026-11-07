@@ -74,7 +74,7 @@ class TransactionImportControllerTest {
             )
 
         mockMvc
-            .perform(multipart("/api/transactions/import").file(file))
+            .perform(multipart("/transactions/import").file(file))
             .andExpect(status().isOk)
     }
 
@@ -92,7 +92,7 @@ class TransactionImportControllerTest {
             )
 
         mockMvc
-            .perform(multipart("/api/transactions/import").file(file))
+            .perform(multipart("/transactions/import").file(file))
             .andExpect(status().isUnprocessableEntity)
     }
 
@@ -110,7 +110,7 @@ class TransactionImportControllerTest {
             )
 
         mockMvc
-            .perform(multipart("/api/transactions/import").file(file))
+            .perform(multipart("/transactions/import").file(file))
             .andExpect(status().isConflict)
     }
 
@@ -119,7 +119,7 @@ class TransactionImportControllerTest {
         val file = MockMultipartFile("file", "sample.txt", "text/plain", ByteArray(0))
 
         mockMvc
-            .perform(multipart("/api/transactions/import").file(file))
+            .perform(multipart("/transactions/import").file(file))
             .andExpect(status().isBadRequest)
 
         verify(exactly = 0) { importService.import(any(), any()) }
@@ -139,7 +139,7 @@ class TransactionImportControllerTest {
             )
 
         mockMvc
-            .perform(multipart("/api/transactions/import").file(file))
+            .perform(multipart("/transactions/import").file(file))
             .andExpect(status().isBadRequest)
 
         verify(exactly = 0) { importService.import(any(), any()) }

@@ -1,5 +1,6 @@
 package io.olkkani.lolviewback.application.service
 
+import io.olkkani.lolviewback.adapter.outbound.persistence.entity.Transaction
 import io.hypersistence.tsid.TSID
 import org.springframework.stereotype.Component
 import java.time.OffsetDateTime

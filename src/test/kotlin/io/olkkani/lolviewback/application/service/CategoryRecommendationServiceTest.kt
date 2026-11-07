@@ -2,6 +2,7 @@ package io.olkkani.lolviewback.application.service
 
 import io.mockk.every
 import io.mockk.mockk
+import io.olkkani.lolviewback.adapter.outbound.persistence.dao.TransactionDao
 import java.math.BigDecimal
 import java.time.OffsetDateTime
 import kotlin.test.Test
@@ -10,7 +11,7 @@ import kotlin.test.assertTrue
 
 class CategoryRecommendationServiceTest {
 
-    private val repository = mockk<TransactionRepository>()
+    private val repository = mockk<TransactionDao>()
     private val service = CategoryRecommendationService(repository)
     private val targetDateTime = OffsetDateTime.parse("2026-06-01T12:00:00+09:00")
 

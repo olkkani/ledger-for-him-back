@@ -45,7 +45,7 @@ Rejected: every net-worth/timeline query (the app's primary screen) would need a
 ### Import flow
 
 ```
-POST /api/transactions/import  (multipart .xls/.xlsx)
+POST /transactions/import  (multipart .xls/.xlsx)
   user_id ← authenticated session/principal (not read from the file)
   RowParser:    read workbook (Apache POI) → raw cell values, one sheet, header row 1
   RowValidator: 금액 > 0, 수입/지출 ∈ {"수입","지출"} after trim, 날짜 parseable
@@ -106,7 +106,7 @@ category    -- new: 분류
 - Upload size limits and hostile/corrupt/encrypted workbook handling — not designed this session, flagged by outside review as needed before this is a public-facing endpoint.
 - Schema still needs nullability, `amount` precision/scale, an `amount <> 0` check constraint, and a `(user_id, occurred_at)` index (used by both this design's net-worth queries and the recommendation engine's history scan) specified at actual migration-writing time.
 - **Outside-review flag, not yet resolved:** the unique constraint `(user_id, occurred_at, description, amount)` rejects legitimate same-day repeat purchases (e.g. two identical-price coffees same day) as false-positive duplicates, and cannot distinguish "retry of the same import" from "coincidental identical transaction." A more precise fix (import-batch identity for idempotency, row constraint only if true duplicates must be forbidden) was proposed but not adopted this session — revisit if real usage hits this false-positive case.
-- **Outside-review flag, not yet resolved:** the recommendation API's `GET /api/transactions/recommendations?amount=...` doesn't yet state whether `amount` is signed post this design's decision, and grouping only by `description` can average an income and expense row sharing a label toward zero. Belongs to `transaction-description-recommendation.md`, not resolved here.
+- **Outside-review flag, not yet resolved:** the recommendation API's `GET /transactions/recommendations?amount=...` doesn't yet state whether `amount` is signed post this design's decision, and grouping only by `description` can average an income and expense row sharing a label toward zero. Belongs to `transaction-description-recommendation.md`, not resolved here.
 - **"순자산 추이" naming:** outside review noted `SUM(amount)` produces net cash flow, not true net worth (no asset-balance/opening-snapshot tracking). Naming/scope question for the product, not a schema blocker — noted, not resolved this session.
 
 ## Success Criteria
@@ -120,7 +120,7 @@ Import a real historical export file; `SUM(amount)` over the imported rows match
 3. Get a real sample export file and confirm the actual header order/count against the "Parsing assumptions" list above before writing the parser.
 4. Write RowParser / RowValidator / TransactionMapper as separately testable units.
 5. Add tests: sign correctness (수입/지출 fixture rows), blank-row skipping, all-or-nothing rollback on a bad row, duplicate-constraint rejection surfaced as a readable error.
-6. Build `POST /api/transactions/import` wiring validate-all-then-insert.
+6. Build `POST /transactions/import` wiring validate-all-then-insert.
 7. Before this is a public-facing endpoint: add upload size/row limits and reject corrupt/encrypted workbooks cleanly (outside-review flag, not yet designed).
 
 ## What I noticed about how you think
@@ -168,7 +168,7 @@ Synthesized from this review's findings. Run with Claude Code or Codex; checkbox
   - Verify: `./gradlew test` passes with all listed cases present
 - [ ] **T6 (P3, human: ~2h / CC: ~15min)** — hardening — Upload size/row limits, reject corrupt/encrypted workbooks
   - Surfaced by: Outside review — HTTP file-upload endpoint, not a trusted local script
-  - Files: `POST /api/transactions/import` controller
+  - Files: `POST /transactions/import` controller
   - Verify: oversized/corrupt fixture uploads return a clean 4xx, not a 500 or hang
 
 ## GSTACK REVIEW REPORT

@@ -53,7 +53,7 @@ class CategoryRecommendationControllerTest {
         every { stubPrincipalResolver.currentUserId() } returns StubPrincipalResolver.STUB_USER_ID
         every { service.recommend(any(), isNull(), any()) } returns emptyList()
 
-        mockMvc.perform(get("/api/transactions/recommendations/category"))
+        mockMvc.perform(get("/transactions/recommendations/category"))
             .andExpect(status().isOk)
 
         verify { service.recommend(StubPrincipalResolver.STUB_USER_ID, null, any()) }
@@ -66,7 +66,7 @@ class CategoryRecommendationControllerTest {
         every { service.recommend(any(), isNull(), capture(captured)) } returns emptyList()
 
         val before = OffsetDateTime.now()
-        mockMvc.perform(get("/api/transactions/recommendations/category")).andExpect(status().isOk)
+        mockMvc.perform(get("/transactions/recommendations/category")).andExpect(status().isOk)
         val after = OffsetDateTime.now()
 
         assertTrue(!captured.captured.isBefore(before) && !captured.captured.isAfter(after))
@@ -77,7 +77,7 @@ class CategoryRecommendationControllerTest {
         every { stubPrincipalResolver.currentUserId() } returns StubPrincipalResolver.STUB_USER_ID
         every { service.recommend(any(), isNull(), any()) } returns emptyList()
 
-        mockMvc.perform(get("/api/transactions/recommendations/category?targetDateTime=2026-03-01T10:00:00+09:00"))
+        mockMvc.perform(get("/transactions/recommendations/category?targetDateTime=2026-03-01T10:00:00+09:00"))
             .andExpect(status().isOk)
 
         verify { service.recommend(any(), isNull(), OffsetDateTime.parse("2026-03-01T10:00:00+09:00")) }
@@ -88,7 +88,7 @@ class CategoryRecommendationControllerTest {
         every { stubPrincipalResolver.currentUserId() } returns StubPrincipalResolver.STUB_USER_ID
         every { service.recommend(any(), eq(BigDecimal("15000")), any()) } returns emptyList()
 
-        mockMvc.perform(get("/api/transactions/recommendations/category?amount=15000"))
+        mockMvc.perform(get("/transactions/recommendations/category?amount=15000"))
             .andExpect(status().isOk)
 
         verify { service.recommend(any(), BigDecimal("15000"), any()) }
@@ -99,7 +99,7 @@ class CategoryRecommendationControllerTest {
         every { stubPrincipalResolver.currentUserId() } returns StubPrincipalResolver.STUB_USER_ID
         every { service.recommend(any(), isNull(), any()) } returns emptyList()
 
-        mockMvc.perform(get("/api/transactions/recommendations/category"))
+        mockMvc.perform(get("/transactions/recommendations/category"))
             .andExpect(status().isOk)
 
         verify { service.recommend(any(), null, any()) }
@@ -112,7 +112,7 @@ class CategoryRecommendationControllerTest {
             CategoryCandidate(category = "식비", score = 0.8, frequency = 12),
         )
 
-        mockMvc.perform(get("/api/transactions/recommendations/category"))
+        mockMvc.perform(get("/transactions/recommendations/category"))
             .andExpect(status().isOk)
             .andExpect(content().json("""[{"category":"식비","score":0.8,"frequency":12}]"""))
     }
